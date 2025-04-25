@@ -1,0 +1,82 @@
+package com.cafemba.turismord.ui.navigation
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.Person
+{% if is_premium == true %}
+import androidx.compose.material.icons.twotone.Search
+{% endif %}
+import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.serialization.Serializable
+
+data class TopLevelRoute<T : Any>(val name: String, val route: T, val icon: ImageVector)
+
+@Serializable
+object ActivityList
+
+@Serializable
+data class ActivityDetail(val id: Int)
+
+@Serializable
+object ActivityMap
+
+@Serializable
+data class ProfileDetail(val id: Long)
+
+@Serializable
+object Profile
+
+@Serializable
+object ProfileList
+
+@Serializable
+object CompanyList
+
+@Serializable
+object CompanyDetail
+
+@Serializable
+object Authentication
+
+@Serializable
+object Login
+
+@Serializable
+object Register
+
+@Serializable
+object ResetPassword
+
+@Serializable
+object SuccessDetail
+
+@Serializable
+object ErrorDetail
+
+@Serializable
+object Home
+
+@Serializable
+{% if is_premium == true %}
+@Serializable
+object Search
+{% endif %}
+
+{% if is_premium == true %}
+@Serializable
+object Map
+{% endif %}
+
+sealed class Screens {
+    companion object {
+        val navRoutes = listOf(
+            TopLevelRoute("Activity", ActivityDetail(1), Icons.Filled.PlayArrow),
+            TopLevelRoute("Profile", Profile, Icons.TwoTone.Person),
+            TopLevelRoute("Home", Home, Icons.TwoTone.Home),
+            {% if is_premium == true %}
+            TopLevelRoute("Search", Search, Icons.TwoTone.Search),
+            {% endif %}
+        )
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "sdaworld": {
+      "usuario": "charles",
+      "is_premium":true,
+      "buscador": 5,
+      "mapa": {
+        "gps": true
+      }
+    }
+}
+  

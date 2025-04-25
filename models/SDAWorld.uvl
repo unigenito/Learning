@@ -1,0 +1,29 @@
+namespace sdaworld
+
+features
+	SdaWorld
+		mandatory
+			usuario
+				alternative
+					premium
+						mandatory
+							miubicacion
+							mapa
+								mandatory
+									gps
+							buscador
+								mandatory
+									tipoactividad
+										alternative
+											hiking
+											surfing
+											beach
+											senderismo
+					standard
+						mandatory
+							eventos
+							profile
+			home
+
+constraints
+	mapa => gps

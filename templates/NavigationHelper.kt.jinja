@@ -1,0 +1,77 @@
+package com.cafemba.turismord.ui.navigation
+
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.cafemba.turismord.ui.activity.detail.ActivityDetailScreen
+import com.cafemba.turismord.ui.activity.list.ActivityListScreen
+import com.cafemba.turismord.ui.activity.map.MapScreen
+import com.cafemba.turismord.ui.auth.AuthViewModel
+import com.cafemba.turismord.ui.auth.login.LoginScreen
+import com.cafemba.turismord.ui.company.detail.CompanyDetailScreen
+import com.cafemba.turismord.ui.company.list.CompanyListScreen
+import com.cafemba.turismord.ui.home.HomeScreen
+import com.cafemba.turismord.ui.profile.detail.ProfileDetailScreen
+import com.cafemba.turismord.ui.profile.list.ProfileListScreen
+import com.cafemba.turismord.ui.search.SearchScreen
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun NavigationHelper(
+    navController: NavHostController,
+    authViewModel: AuthViewModel,
+    modifier: Modifier = Modifier
+){
+
+        NavHost(
+            navController = navController,
+            startDestination = if (authViewModel.uiState.user == null) Login else ProfileList,
+            modifier = modifier
+        ){
+
+            composable<ProfileList> {
+                ProfileListScreen  { id -> navController.navigate( ProfileDetail(id = id)) }
+            }
+            composable<ActivityList> {
+                ActivityListScreen{ navController.popBackStack()}
+            }
+            composable<ActivityDetail> {
+                ActivityDetailScreen(
+                    navigateToMap = {  
+                        {% if is_premium == true %}navController.navigate(Map)
+                         {% endif %}
+                        }
+                ) { navController.popBackStack()}
+            }
+            composable<Profile> {
+
+                ProfileDetailScreen { id -> navController.navigate(ProfileDetail(id = id)) }
+            }
+            composable<Home> {
+                HomeScreen()
+            }
+            composable<CompanyList> {
+                CompanyListScreen()
+            }
+            composable<CompanyDetail> {
+                CompanyDetailScreen()
+            }
+            {% if is_premium == true %}
+            composable<Search> {
+                SearchScreen()
+            }
+             {% endif %}
+            composable<Login> {
+                LoginScreen(modifier, authViewModel)
+            }
+             {% if is_premium == true %}
+            composable<Map> {
+                MapScreen()
+            }
+             {% endif %}
+        }
+}

@@ -1,0 +1,258 @@
+package com.cafemba.turismord.ui.activity.detail
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.cafemba.turismord.ui.activity.ActivityAction
+import com.cafemba.turismord.ui.activity.ActivityCard
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.roundToInt
+
+@Composable
+fun ActivityCardStack(
+    activities: List<ActivityCard>,
+    onAction: (ActivityCard, ActivityAction) -> Unit,
+    navigateToMap: () -> Unit,
+) {
+    val cardOffset = remember { Animatable(0f) }
+    val currentIndex = remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+    val isDetailMode = remember { mutableStateOf(false) }
+    val isShowGallery = remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        if (currentIndex.intValue < activities.size) {
+            val activity = activities[currentIndex.intValue]
+            val offsetX = cardOffset.value
+            val opacity = min(abs(offsetX) / 300f, 1f)
+
+            // Animación de entrada para la tarjeta
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(tween(400)) + scaleIn(tween(400), initialScale = 0.95f),
+                exit = fadeOut(tween(300)) + scaleOut(tween(300), targetScale = 1.05f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .offset { IntOffset(cardOffset.value.roundToInt(), 0) }
+                        .graphicsLayer {
+                            rotationZ = (offsetX / 20).coerceIn(-15f, 15f)
+                        }
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragEnd = {
+                                    coroutineScope.launch {
+                                        when {
+                                            offsetX > 300f -> {
+                                                cardOffset.animateTo(1000f, tween(300))
+                                                onAction(activity, ActivityAction.LIKE)
+                                                cardOffset.snapTo(0f)
+                                                currentIndex.intValue++
+                                            }
+                                            offsetX < -300f -> {
+                                                cardOffset.animateTo(-1000f, tween(300))
+                                                onAction(activity, ActivityAction.DISLIKE)
+                                                cardOffset.snapTo(0f)
+                                                currentIndex.intValue++
+                                            }
+                                            else -> cardOffset.animateTo(0f, tween(300))
+                                        }
+                                    }
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    coroutineScope.launch {
+                                        cardOffset.snapTo(cardOffset.value + dragAmount.x)
+                                    }
+                                }
+                            )
+                        }
+                ) {
+                    //ActivityCardView(activity, modifier = Modifier.fillMaxSize())
+                    ActivityCardView(
+                        activity = activity,
+                        isDetailMode = isDetailMode.value,
+                        isShowGallery = isShowGallery.value,
+                        onToggleDetail = { isDetailMode.value = !isDetailMode.value },
+                        onToggleGallery = { isShowGallery.value = !isShowGallery.value },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    // Feedback Emoji
+                    if (offsetX > 0f) {
+                        Text(
+                            "❤️",
+                            fontSize = 64.sp,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(32.dp)
+                                .graphicsLayer { alpha = opacity }
+                        )
+                    } else if (offsetX < 0f) {
+                        Text(
+                            "👎",
+                            fontSize = 64.sp,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(32.dp)
+                                .graphicsLayer { alpha = opacity }
+                        )
+                    }
+                }
+            }
+
+            // 🔥 Animated Buttons at the Bottom
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { it / 2 },
+                exit = fadeOut(tween(300)) + slideOutVertically(tween(300)) { it / 2 },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(32.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        //.background(Color.White.copy(alpha = 0.85f))
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // 👎 Botón Pasar
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                cardOffset.animateTo(-1000f, tween(300))
+                                onAction(activity, ActivityAction.DISLIKE)
+                                cardOffset.snapTo(0f)
+                                currentIndex.intValue++
+                            }
+                        },
+                        modifier = Modifier
+                            .background(Color(0xFFE0E0E0), CircleShape)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Me interesa",
+                            tint = Color.Red
+                        )
+                    }
+
+                    // ℹ️ Botón Info
+                    if (!isShowGallery.value) {
+                        IconButton(
+                            onClick = {
+                                isDetailMode.value = !isDetailMode.value
+                            },
+                            modifier = Modifier
+                                .background(Color(0xFFE0E0E0), CircleShape)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "Más información",
+                                tint = Color.DarkGray
+                            )
+                        }
+                    }
+
+                    // 👍 Botón Me interesa
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                cardOffset.animateTo(1000f, tween(300))
+                                onAction(activity, ActivityAction.LIKE)
+                                cardOffset.snapTo(0f)
+                                currentIndex.intValue++
+                            }
+                        },
+                        modifier = Modifier
+                            .background(Color(0xFFE0E0E0), CircleShape)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = "Me interesa",
+                            tint = Color.DarkGray
+                        )
+                    }
+                    {% if is_premium == true %}
+                    //  Botón para abrir el mapa
+                    
+                    IconButton(
+                        onClick = {
+                            navigateToMap()
+                        },
+                        modifier = Modifier
+                            .background(Color(0xFFE0E0E0), CircleShape)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Ubicación",
+                            tint = Color.DarkGray
+                        )
+                    }
+                    {% endif %}
+                }
+            }
+
+
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "🎉 ¡No hay más actividades!",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
