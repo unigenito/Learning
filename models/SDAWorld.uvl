@@ -7,8 +7,8 @@ features
 				alternative
 					premium
 						mandatory
-							miubicacion
 							mapa
+							miubicacion
 								mandatory
 									gps
 							buscador
@@ -23,7 +23,8 @@ features
 						mandatory
 							eventos
 							profile
-			home
+				mandatory
+					home
 
 constraints
-	mapa => gps
+	miubicacion => gps

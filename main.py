@@ -9,8 +9,8 @@ JSON_DIR = PROJECT_ROOT / "json"
 OUTPUT_BASE_DIR = pathlib.Path("/Users/alu182038/Desktop/usj/TFM/TurismoRd/app/src/main/java/com/cafemba/turismord/ui")
 
 # Cambia entre configuraciones aquí
-CONFIG_FILE = JSON_DIR / "configuracion_standard.json"
-# CONFIG_FILE = JSON_DIR / "configuracion_premium.json"
+# CONFIG_FILE = JSON_DIR / "configuracion_standard.json"
+CONFIG_FILE = JSON_DIR / "configuracion_premium.json"
 
 # === Función para construir archivo a partir de plantilla ===
 def build_template(context, template_path, output_path):
